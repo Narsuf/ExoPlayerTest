@@ -1,7 +1,6 @@
 package com.jorgedguezm.exoplayertest;
 
 import android.net.Uri;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -32,8 +31,20 @@ public class MainActivity extends AppCompatActivity {
         this.exoPlayerView = findViewById(R.id.playerView);
 
         this.createPlayer();
-        this.exoPlayerView.setPlayer(this.player);
         this.preparePlayer();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        this.player.setPlayWhenReady(false);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Autoplay
         this.player.setPlayWhenReady(true);
     }
 
@@ -47,18 +58,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void preparePlayer() {
+        Uri uri = Uri.parse("http://cdn.s2.eu.nice264.com/converted_work6/" +
+                "0082c06e504b0a422bf1_6815f2deeb179c29748af42f8cd5ce95.mp4");
+
         // Measures bandwidth during playback.
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+
         // Produces DataSource instances through which media data is loaded.
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this,
                 Util.getUserAgent(this, "ExoPlayerTest"), bandwidthMeter);
+
         // This is the MediaSource representing the media to be played.
         MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(
-                        Uri.parse("http://cdn.s2.eu.nice264.com/converted_work6/" +
-                                "0082c06e504b0a422bf1_6815f2deeb179c29748af42f8cd5ce95.mp4")
-                );
-        // Prepare the player with the source.
+                .createMediaSource(uri);
+        this.exoPlayerView.setPlayer(this.player);
         player.prepare(videoSource);
     }
 }
