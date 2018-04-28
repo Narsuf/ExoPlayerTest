@@ -1,7 +1,7 @@
 package com.example.exoplayer_plugin;
 
-import android.content.Context;
-import android.widget.Toast;
+import android.support.design.widget.Snackbar;
+import android.view.View;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -11,10 +11,10 @@ import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 
 public class PluginListener implements Player.EventListener {
-    Context c;
+    View v;
 
-    public PluginListener(Context c) {
-        this.c = c;
+    public PluginListener(View v) {
+        this.v = v;
 
     }
 
@@ -65,7 +65,12 @@ public class PluginListener implements Player.EventListener {
      */
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-        Toast.makeText(c, "State changed", Toast.LENGTH_SHORT).show();
+        if (playWhenReady) {
+            Snackbar.make(v, "Video resumed",Snackbar.LENGTH_SHORT).show();
+        } else {
+            Snackbar.make(v, "Video paused",Snackbar.LENGTH_SHORT).show();
+        }
+
     }
 
     /**
