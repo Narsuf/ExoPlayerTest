@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.example.exoplayer_plugin.PluginListener;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
@@ -32,20 +33,15 @@ public class MainActivity extends AppCompatActivity {
 
         this.createPlayer();
         this.preparePlayer();
+
+        // Autoplay when application starts
+        this.player.setPlayWhenReady(true);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         this.player.setPlayWhenReady(false);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        // Autoplay
-        this.player.setPlayWhenReady(true);
     }
 
     private void createPlayer() {
@@ -71,7 +67,9 @@ public class MainActivity extends AppCompatActivity {
         // This is the MediaSource representing the media to be played.
         MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(uri);
+
         this.exoPlayerView.setPlayer(this.player);
-        player.prepare(videoSource);
+        this.player.prepare(videoSource);
+        this.player.addListener(new PluginListener(this));
     }
 }
