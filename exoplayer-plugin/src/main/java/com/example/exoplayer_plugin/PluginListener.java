@@ -10,8 +10,12 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 
+import java.util.Date;
+
 public class PluginListener implements Player.EventListener {
     View v;
+    Boolean hasBeenPaused = false;
+    long dateWhenPaused;
 
     public PluginListener(View v) {
         this.v = v;
@@ -65,10 +69,16 @@ public class PluginListener implements Player.EventListener {
      */
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-        if (playWhenReady) {
-            Snackbar.make(v, "Video resumed",Snackbar.LENGTH_SHORT).show();
-        } else {
+        if (playWhenReady && this.hasBeenPaused == true) {
+            Snackbar.make(v, "Video resumed " + this.returnSecondsPaused() + "s paused",
+                    Snackbar.LENGTH_SHORT).show();
+            this.hasBeenPaused = false;
+        } else if (!playWhenReady) {
             Snackbar.make(v, "Video paused",Snackbar.LENGTH_SHORT).show();
+            this.dateWhenPaused = new Date().getTime();
+            this.hasBeenPaused = true;
+        } else if (playbackState == 4) {
+            Snackbar.make(v, "Video ended",Snackbar.LENGTH_SHORT).show();
         }
 
     }
@@ -143,5 +153,11 @@ public class PluginListener implements Player.EventListener {
     @Override
     public void onSeekProcessed() {
 
+    }
+
+    private long returnSecondsPaused() {
+        long now = new Date().getTime();
+        long result = now - this.dateWhenPaused;
+        return result/1000;
     }
 }
