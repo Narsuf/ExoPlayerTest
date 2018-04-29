@@ -16,6 +16,8 @@ public class PluginListener implements Player.EventListener {
     View v;
     Boolean hasBeenPaused = false;
     long dateWhenPaused;
+    int timesResumed;
+    int timesPaused;
 
     public PluginListener(View v) {
         this.v = v;
@@ -70,17 +72,18 @@ public class PluginListener implements Player.EventListener {
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
         if (playWhenReady && this.hasBeenPaused == true) {
-            Snackbar.make(v, "Video resumed " + this.returnSecondsPaused() + "s paused",
-                    Snackbar.LENGTH_SHORT).show();
+            this.timesResumed++;
+            this.showSnackbar("Video resumed ("  + this.timesResumed + " times). "  +
+                    this.returnSecondsPaused() + "s paused.");
             this.hasBeenPaused = false;
         } else if (!playWhenReady) {
-            Snackbar.make(v, "Video paused",Snackbar.LENGTH_SHORT).show();
+            this.timesPaused++;
+            this.showSnackbar( "Video paused (" + this.timesPaused + " times).");
             this.dateWhenPaused = new Date().getTime();
             this.hasBeenPaused = true;
         } else if (playbackState == 4) {
-            Snackbar.make(v, "Video ended",Snackbar.LENGTH_SHORT).show();
+            this.showSnackbar("Video ended");
         }
-
     }
 
     /**
@@ -159,5 +162,9 @@ public class PluginListener implements Player.EventListener {
         long now = new Date().getTime();
         long result = now - this.dateWhenPaused;
         return result/1000;
+    }
+
+    private void showSnackbar(String s) {
+        Snackbar.make(this.v, s, Snackbar.LENGTH_LONG).show();
     }
 }
