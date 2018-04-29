@@ -1,8 +1,16 @@
 package com.example.exoplayer_plugin;
 
+import android.content.Context;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.View;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
@@ -11,17 +19,20 @@ import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PluginListener implements Player.EventListener {
     View v;
+    Context c;
     Boolean hasBeenPaused = false;
     long dateWhenPaused;
     int timesResumed;
     int timesPaused;
 
-    public PluginListener(View v) {
+    public PluginListener(View v, Context c) {
         this.v = v;
-
+        this.c = c;
     }
 
     /**
@@ -83,6 +94,7 @@ public class PluginListener implements Player.EventListener {
             this.hasBeenPaused = true;
         } else if (playbackState == 4) {
             this.showSnackbar("Video ended");
+            this.callAPI();
         }
     }
 
@@ -115,7 +127,7 @@ public class PluginListener implements Player.EventListener {
      */
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-
+        Log.e("Player error", error.getMessage());
     }
 
     /**
@@ -166,5 +178,36 @@ public class PluginListener implements Player.EventListener {
 
     private void showSnackbar(String s) {
         Snackbar.make(this.v, s, Snackbar.LENGTH_LONG).show();
+    }
+
+    private void callAPI() {
+        final RequestQueue MyRequestQueue = Volley.newRequestQueue(this.c);
+
+        String url = "https://reqres.in/api/users";
+        StringRequest MyStringRequest = new StringRequest(Request.Method.POST, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        //This code is executed if the server responds, whether or not the response contains data.
+                        //The String 'response' contains the server's response.
+                        Log.i("Response", response);
+                    }
+                }, new Response.ErrorListener() {
+            //Create an error listener to handle errors appropriately.
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //This code is executed if there is an error.
+                Log.e("Error response", error.getMessage());
+            }
+        }) {
+            protected Map<String, String> getParams() {
+                Map<String, String> MyData = new HashMap<>();
+                MyData.put("timesResumed", "" + timesResumed);
+                MyData.put("timesPaused", "" + timesPaused);
+                return MyData;
+            }
+        };
+
+        MyRequestQueue.add(MyStringRequest);
     }
 }

@@ -70,6 +70,6 @@ public class MainActivity extends AppCompatActivity {
 
         this.exoPlayerView.setPlayer(this.player);
         this.player.prepare(videoSource);
-        this.player.addListener(new PluginListener(findViewById(R.id.mainActivity)));
+        this.player.addListener(new PluginListener(findViewById(R.id.mainActivity), this));
     }
 }
