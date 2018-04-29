@@ -25,8 +25,11 @@ import java.util.Map;
 public class PluginListener implements Player.EventListener {
     View v;
     Context c;
-    Boolean hasBeenPaused = false;
+    boolean hasBeenPaused = false;
+    boolean firstLoad = true;
+    boolean firstFrame = true;
     long dateWhenPaused;
+    long dateWhenFirstLoaded;
     int timesResumed;
     int timesPaused;
 
@@ -70,7 +73,15 @@ public class PluginListener implements Player.EventListener {
      */
     @Override
     public void onLoadingChanged(boolean isLoading) {
+        if (this.firstLoad && isLoading) {
+            HashMap<String, String> map = new HashMap<>();
+            this.dateWhenFirstLoaded = new Date().getTime();
+            map.put("FirstTimeLoaded", "" + this.dateWhenFirstLoaded);
+            this.callAPI(map);
 
+            this.firstLoad = false;
+            Log.i("First call", "First call");
+        }
     }
 
     /**
@@ -82,19 +93,34 @@ public class PluginListener implements Player.EventListener {
      */
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-        if (playWhenReady && this.hasBeenPaused == true) {
+        if (this.firstFrame && playbackState == 3 && playWhenReady) {
+            HashMap<String, String> map = new HashMap<>();
+            map.put("TimeToLoadFirstFrame", "" + this.returnDateDifferenceInSeconds(
+                    this.dateWhenFirstLoaded));
+            this.callAPI(map);
+
+            this.firstFrame = false;
+            Log.i("Second call", "Second call");
+
+        } else if (this.firstFrame == false && playWhenReady && this.hasBeenPaused == true) {
             this.timesResumed++;
             this.showSnackbar("Video resumed ("  + this.timesResumed + " times). "  +
-                    this.returnSecondsPaused() + "s paused.");
+                    this.returnDateDifferenceInSeconds(this.dateWhenPaused) + "s paused.");
             this.hasBeenPaused = false;
-        } else if (!playWhenReady) {
+
+        }else if (!playWhenReady) {
             this.timesPaused++;
             this.showSnackbar( "Video paused (" + this.timesPaused + " times).");
             this.dateWhenPaused = new Date().getTime();
             this.hasBeenPaused = true;
+
         } else if (playbackState == 4) {
             this.showSnackbar("Video ended");
-            this.callAPI();
+            HashMap<String, String> map = new HashMap<>();
+            map.put("timesResumed", "" + this.timesResumed);
+            map.put("timesPaused", "" + this.timesPaused);
+            this.callAPI(map);
+            Log.i("Third call", "3");
         }
     }
 
@@ -170,9 +196,9 @@ public class PluginListener implements Player.EventListener {
 
     }
 
-    private long returnSecondsPaused() {
+    private long returnDateDifferenceInSeconds(long pastTime) {
         long now = new Date().getTime();
-        long result = now - this.dateWhenPaused;
+        long result = now - pastTime;
         return result/1000;
     }
 
@@ -180,8 +206,9 @@ public class PluginListener implements Player.EventListener {
         Snackbar.make(this.v, s, Snackbar.LENGTH_LONG).show();
     }
 
-    private void callAPI() {
-        final RequestQueue MyRequestQueue = Volley.newRequestQueue(this.c);
+    private void callAPI(HashMap<String, String> h) {
+        final HashMap<String, String> map = h;
+        RequestQueue MyRequestQueue = Volley.newRequestQueue(this.c);
 
         String url = "https://reqres.in/api/users";
         StringRequest MyStringRequest = new StringRequest(Request.Method.POST, url,
@@ -201,10 +228,7 @@ public class PluginListener implements Player.EventListener {
             }
         }) {
             protected Map<String, String> getParams() {
-                Map<String, String> MyData = new HashMap<>();
-                MyData.put("timesResumed", "" + timesResumed);
-                MyData.put("timesPaused", "" + timesPaused);
-                return MyData;
+                return map;
             }
         };
 
