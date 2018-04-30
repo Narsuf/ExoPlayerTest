@@ -95,7 +95,7 @@ public class PluginListener implements Player.EventListener {
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
         if (this.firstFrame && playbackState == 3 && playWhenReady) {
             HashMap<String, String> map = new HashMap<>();
-            map.put("TimeToLoadFirstFrame", "" + this.returnDateDifferenceInSeconds(
+            map.put("TimeToLoadFirstFrame", "" + this.returnDateDifference(
                     this.dateWhenFirstLoaded));
             this.callAPI(map);
 
@@ -105,7 +105,7 @@ public class PluginListener implements Player.EventListener {
         } else if (this.firstFrame == false && playWhenReady && this.hasBeenPaused == true) {
             this.timesResumed++;
             this.showSnackbar("Video resumed ("  + this.timesResumed + " times). "  +
-                    this.returnDateDifferenceInSeconds(this.dateWhenPaused) + "s paused.");
+                    this.returnDateDifference(this.dateWhenPaused)/1000 + "s paused.");
             this.hasBeenPaused = false;
 
         }else if (!playWhenReady) {
@@ -196,10 +196,10 @@ public class PluginListener implements Player.EventListener {
 
     }
 
-    private long returnDateDifferenceInSeconds(long pastTime) {
+    private long returnDateDifference(long pastTime) {
         long now = new Date().getTime();
         long result = now - pastTime;
-        return result/1000;
+        return result;
     }
 
     private void showSnackbar(String s) {
